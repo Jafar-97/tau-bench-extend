@@ -1,0 +1,675 @@
+"""
+Report Generator - produces Sierra-branded HTML eval reports.
+"""
+from __future__ import annotations
+from tau_bench_extend.core.models import DomainReport
+
+HTML_TEMPLATE = """<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>τ-bench-extend | Sierra Eval Report</title>
+<style>
+ @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+ :root {
+ --bg: #f7f7f5;
+ --surface: #ffffff;
+ --surface2: #f3f1ee;
+ --border: #e5e2dc;
+ --text: #1a1814;
+ --muted: #6b6560;
+ --sierra-orange: #f5a623;
+ --sierra-orange-light: #fff8ee;
+ --sierra-orange-mid: #f5a623;
+ --sierra-dark: #0d0d0d;
+ --sierra-warm: #6b6560;
+ --red: #c0392b;
+ --red-light: #fdf0ef;
+ --yellow: #b7791f;
+ --yellow-light: #fef9ee;
+ --blue: #1d4ed8;
+ --blue-light: #eff6ff;
+ }
+
+ * { box-sizing: border-box; margin: 0; padding: 0; }
+
+ body {
+ background: var(--bg);
+ color: var(--text);
+ font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+ line-height: 1.6;
+ font-size: 15px;
+ }
+
+ /* ── TOP BANNER ── */
+ .top-banner {
+ background: var(--sierra-dark);
+ color: #fff;
+ padding: 0.6rem 2.5rem;
+ display: flex;
+ align-items: center;
+ justify-content: space-between;
+ font-size: 0.78rem;
+ letter-spacing: 0.02em;
+ }
+ .top-banner-left { display: flex; align-items: center; gap: 0.75rem; }
+ .top-banner .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--sierra-orange-mid); display: inline-block; }
+ .top-banner a { color: #fbbf5e; text-decoration: none; }
+ .top-banner a:hover { color: #fff; }
+
+ /* ── HERO HEADER ── */
+ .hero {
+ background: var(--sierra-dark);
+ color: #fff;
+ padding: 3rem 2.5rem 2.5rem;
+ border-bottom: 3px solid var(--sierra-orange-mid);
+ }
+ .hero-eyebrow {
+ font-size: 0.72rem;
+ font-weight: 600;
+ letter-spacing: 0.12em;
+ text-transform: uppercase;
+ color: var(--sierra-orange-mid);
+ margin-bottom: 0.75rem;
+ display: flex;
+ align-items: center;
+ gap: 0.5rem;
+ }
+ .hero-eyebrow::before {
+ content: '';
+ display: inline-block;
+ width: 20px;
+ height: 2px;
+ background: var(--sierra-orange-mid);
+ }
+ .hero h1 {
+ font-size: 2.4rem;
+ font-weight: 700;
+ line-height: 1.15;
+ margin-bottom: 0.5rem;
+ letter-spacing: -0.02em;
+ }
+ .hero h1 span { color: var(--sierra-orange-mid); }
+ .hero-sub {
+ font-size: 1rem;
+ color: #b0aaa3;
+ margin-bottom: 1.5rem;
+ max-width: 680px;
+ }
+ .hero-meta {
+ display: flex;
+ gap: 1rem;
+ flex-wrap: wrap;
+ align-items: center;
+ }
+ .badge {
+ display: inline-flex;
+ align-items: center;
+ gap: 0.35rem;
+ padding: 0.3rem 0.8rem;
+ border-radius: 9999px;
+ font-size: 0.75rem;
+ font-weight: 600;
+ letter-spacing: 0.01em;
+ }
+ .badge-domain { background: rgba(245,166,35,0.25); color: #fbbf5e; border: 1px solid rgba(245,166,35,0.4); }
+ .badge-model { background: rgba(255,255,255,0.1); color: #d4cfc9; border: 1px solid rgba(255,255,255,0.15); }
+ .badge-built { background: rgba(245,166,35,0.15); color: #fbbf5e; border: 1px solid rgba(245,166,35,0.3); font-style: italic; }
+
+ /* ── MAIN CONTENT ── */
+ .main { max-width: 1200px; margin: 0 auto; padding: 2rem 2.5rem 4rem; }
+
+ /* ── PROBLEM BANNER ── */
+ .problem-banner {
+ background: var(--surface);
+ border: 1px solid var(--border);
+ border-left: 4px solid var(--sierra-orange-mid);
+ border-radius: 0 10px 10px 0;
+ padding: 1.25rem 1.5rem;
+ margin-bottom: 2rem;
+ }
+ .problem-banner-title {
+ font-size: 0.7rem;
+ font-weight: 700;
+ letter-spacing: 0.1em;
+ text-transform: uppercase;
+ color: var(--sierra-orange);
+ margin-bottom: 0.5rem;
+ display: flex;
+ align-items: center;
+ gap: 0.5rem;
+ }
+ .problem-banner p {
+ font-size: 0.9rem;
+ color: var(--muted);
+ line-height: 1.65;
+ }
+ .problem-banner strong { color: var(--text); }
+ .problem-banner a {
+ color: var(--sierra-orange);
+ text-decoration: none;
+ font-weight: 500;
+ border-bottom: 1px solid rgba(245,166,35,0.3);
+ }
+ .problem-banner a:hover { border-bottom-color: var(--sierra-orange); }
+
+ /* ── SECTION TITLE ── */
+ .section-title {
+ font-size: 0.7rem;
+ font-weight: 700;
+ letter-spacing: 0.1em;
+ text-transform: uppercase;
+ color: var(--muted);
+ margin-bottom: 1rem;
+ display: flex;
+ align-items: center;
+ gap: 0.6rem;
+ }
+ .section-title::after {
+ content: '';
+ flex: 1;
+ height: 1px;
+ background: var(--border);
+ }
+
+ /* ── METRIC CARDS ── */
+ .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 2rem; }
+ .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-bottom: 2rem; }
+
+ .card {
+ background: var(--surface);
+ border: 1px solid var(--border);
+ border-radius: 12px;
+ padding: 1.5rem;
+ }
+ .card-title {
+ font-size: 0.72rem;
+ font-weight: 600;
+ letter-spacing: 0.08em;
+ text-transform: uppercase;
+ color: var(--muted);
+ margin-bottom: 0.75rem;
+ }
+
+ .metric-value { font-size: 2.6rem; font-weight: 700; line-height: 1; letter-spacing: -0.03em; }
+ .metric-sub { font-size: 0.8rem; color: var(--muted); margin-top: 0.4rem; }
+ .metric-delta {
+ display: inline-block;
+ font-size: 0.75rem;
+ font-weight: 600;
+ padding: 0.1rem 0.5rem;
+ border-radius: 4px;
+ margin-top: 0.5rem;
+ }
+
+ .green { color: var(--sierra-orange); }
+ .red { color: var(--red); }
+ .yellow { color: var(--yellow); }
+ .muted { color: var(--muted); }
+
+ .progress-bar {
+ height: 6px;
+ border-radius: 3px;
+ background: var(--surface2);
+ overflow: hidden;
+ margin-top: 0.75rem;
+ }
+ .progress-fill { height: 100%; border-radius: 3px; }
+
+ /* ── INSIGHT BOXES ── */
+ .insight-box {
+ background: var(--sierra-orange-light);
+ border: 1px solid rgba(245,166,35,0.2);
+ border-radius: 8px;
+ padding: 0.9rem 1.1rem;
+ margin-bottom: 0.75rem;
+ display: flex;
+ gap: 0.75rem;
+ align-items: flex-start;
+ }
+ .insight-icon { font-size: 1rem; margin-top: 0.05rem; flex-shrink: 0; }
+ .insight-box p { font-size: 0.875rem; color: var(--text); line-height: 1.6; }
+ .insight-box strong { color: var(--sierra-orange); }
+
+ /* ── FAILURE BARS ── */
+ .failure-row { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.8rem; }
+ .failure-name { font-size: 0.8rem; color: var(--text); width: 160px; flex-shrink: 0; }
+ .failure-bar-wrap { flex: 1; }
+ .failure-count { font-size: 0.8rem; color: var(--muted); width: 2.5rem; text-align: right; flex-shrink: 0; }
+
+ /* ── TABLE ── */
+ table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+ th {
+ text-align: left;
+ padding: 0.65rem 1rem;
+ background: var(--surface2);
+ color: var(--muted);
+ font-weight: 600;
+ font-size: 0.72rem;
+ letter-spacing: 0.05em;
+ text-transform: uppercase;
+ border-bottom: 1px solid var(--border);
+ }
+ td { padding: 0.7rem 1rem; border-bottom: 1px solid var(--border); color: var(--text); }
+ tr:last-child td { border-bottom: none; }
+ tr:hover td { background: var(--surface2); }
+
+ .pill {
+ display: inline-block;
+ padding: 0.15rem 0.55rem;
+ border-radius: 4px;
+ font-size: 0.7rem;
+ font-weight: 600;
+ letter-spacing: 0.02em;
+ }
+ .pill-pass { background: var(--sierra-orange-light); color: var(--sierra-orange); }
+ .pill-flaky { background: var(--yellow-light); color: var(--yellow); }
+ .pill-fail { background: var(--red-light); color: var(--red); }
+
+ /* ── QUOTE BLOCK ── */
+ .sierra-quote {
+ background: var(--sierra-dark);
+ border-radius: 12px;
+ padding: 1.75rem 2rem;
+ margin-bottom: 2rem;
+ position: relative;
+ overflow: hidden;
+ }
+ .sierra-quote::before {
+ content: '"';
+ position: absolute;
+ top: -0.5rem;
+ left: 1.25rem;
+ font-size: 6rem;
+ color: rgba(64,145,108,0.15);
+ font-family: Georgia, serif;
+ line-height: 1;
+ }
+ .sierra-quote-text {
+ font-size: 1rem;
+ color: #d4cfc9;
+ line-height: 1.7;
+ font-style: italic;
+ position: relative;
+ z-index: 1;
+ }
+ .sierra-quote-text strong { color: #fbbf5e; font-style: normal; }
+ .sierra-quote-source {
+ font-size: 0.78rem;
+ color: #6b6560;
+ margin-top: 0.75rem;
+ position: relative;
+ z-index: 1;
+ }
+ .sierra-quote-source a { color: var(--sierra-orange-mid); text-decoration: none; }
+
+ /* ── FOOTER ── */
+ footer {
+ border-top: 1px solid var(--border);
+ padding: 1.5rem 2.5rem;
+ display: flex;
+ justify-content: space-between;
+ align-items: center;
+ font-size: 0.78rem;
+ color: var(--muted);
+ background: var(--surface);
+ }
+ footer a { color: var(--sierra-orange); text-decoration: none; }
+ .footer-brand { font-weight: 600; color: var(--text); }
+
+ @media (max-width: 768px) {
+ .grid-3, .grid-2 { grid-template-columns: 1fr; }
+ .hero h1 { font-size: 1.75rem; }
+ .main { padding: 1.5rem; }
+ }
+</style>
+</head>
+<body>
+
+<!-- TOP BANNER -->
+<div class="top-banner">
+ <div class="top-banner-left">
+ <span class="dot"></span>
+ <span>Built for Sierra · Extending <a href="https://github.com/sierra-research/tau-bench" target="_blank">τ-bench</a> with new domains + consistency scoring</span>
+ </div>
+ <div>
+ <a href="https://sierra.ai/blog/meet-the-ai-agent-engineer" target="_blank">Sierra's stated problem →</a>
+ </div>
+</div>
+
+<!-- HERO -->
+<div class="hero">
+ <div class="hero-eyebrow">Agent Reliability Report</div>
+ <h1>&#964;-bench-<span>extend</span></h1>
+ <p class="hero-sub">
+ A benchmark extension built for Sierra measuring agent consistency across new domains
+ beyond retail &amp; airline. Surfaces the reliability gap Sierra's own research identified.
+ </p>
+ <div class="hero-meta">
+ <span class="badge badge-domain">⬡ {{ domain }}</span>
+ <span class="badge badge-model">⊙ LLM Agent Eval</span>
+ <span class="badge badge-built">✦ Built for Sierra by Jafar</span>
+ </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+ <!-- SIERRA PROBLEM QUOTE -->
+ <div class="sierra-quote">
+ <p class="sierra-quote-text">
+ "One challenge of deploying AI agents at scale is <strong>the unbounded nature of language</strong>.
+ In production, a customer could say anything to the agent… agent engineers may build
+ custom supervisors for customers, <strong>particularly in heavily regulated environments
+ like healthcare or financial services.</strong>"
+ </p>
+ <p class="sierra-quote-source">
+ Sierra Engineering Team ·
+ <a href="https://sierra.ai/blog/meet-the-ai-agent-engineer" target="_blank">Meet the AI Agent Engineer</a>
+ </p>
+ </div>
+
+ <!-- TWO-PART CONTEXT: THEIR SOLUTION + THE GAP -->
+ <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:2rem;">
+
+ <div class="problem-banner" style="margin-bottom:0;">
+ <div class="problem-banner-title">✅ Sierra's Existing Solution</div>
+ <p>
+ Sierra already built <strong>supervisor models</strong> to handle the unbounded language problem 
+ a second AI layer that verifies and corrects agent outputs before they reach the customer.
+ Their Agent OS also includes determinism controls and safety guardrails.
+ <br><br>
+ This is real and works. That's not the gap.
+ <br><br>
+ <a href="https://sierra.ai/blog/meet-the-ai-agent-engineer" target="_blank">→ Agent supervision docs</a>
+ &nbsp;·&nbsp;
+ <a href="https://sierra.ai/blog/constellation-of-models" target="_blank">→ Constellation of models</a>
+ </p>
+ </div>
+
+ <div class="problem-banner" style="margin-bottom:0; border-left-color:#c0392b;">
+ <div class="problem-banner-title" style="color:var(--red);">❌ What's Still Missing</div>
+ <p>
+ Sierra's own τ-bench benchmark the tool they use to <em>measure</em> how well those
+ supervisors work <strong>only covers retail and airline</strong>. There is no evaluation
+ harness for the domains they explicitly called hardest: <strong>healthcare and financial services</strong>.
+ <br><br>
+ You can't know if your supervisor is working in healthcare if you have no healthcare benchmark to test against.
+ <br><br>
+ <a href="https://sierra.ai/blog/tau-bench-shaping-development-evaluation-agents" target="_blank">→ τ-bench blog post</a>
+ &nbsp;·&nbsp;
+ <a href="https://arxiv.org/abs/2406.12045" target="_blank">→ Original paper</a>
+ </p>
+ </div>
+
+ </div>
+
+ <!-- WHAT THIS PROJECT DOES -->
+ <div style="background:var(--sierra-dark); border-radius:12px; padding:1.5rem 1.75rem; margin-bottom:2rem; display:flex; gap:1.5rem; align-items:flex-start;">
+ <div style="font-size:1.75rem; margin-top:0.1rem;">🎯</div>
+ <div>
+ <div style="font-size:0.7rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:var(--sierra-orange-mid); margin-bottom:0.5rem;">What τ-bench-extend Does</div>
+ <p style="color:#d4cfc9; font-size:0.95rem; line-height:1.7;">
+ This project is <strong style="color:#fff;">not</strong> re-solving the supervisor problem Sierra already solved.
+ It's building the <strong style="color:#fbbf5e;">crash test infrastructure</strong> for the domains they said are hardest.
+ Specifically: a benchmark harness for <strong style="color:#fbbf5e;">healthcare, insurance, and ecommerce</strong>
+ with domain-specific policies, tool sets, and adversarial edge cases plus a
+ <strong style="color:#fbbf5e;">consistency scorer</strong> that runs the same task N times to measure whether
+ Sierra's supervisor is actually holding up under repeated real-world conditions.
+ </p>
+ <p style="color:#6b6560; font-size:0.82rem; margin-top:0.75rem;">
+ Think of it as: Sierra built the seatbelt. This is the crash test dummy for medical and financial scenarios.
+ </p>
+ </div>
+ </div>
+
+ <!-- KEY METRICS -->
+ <div class="section-title">Evaluation Results</div>
+ <div class="grid-3">
+ <div class="card">
+ <div class="card-title">Pass @ 1</div>
+ <div class="metric-value {{ pass_color }}">{{ pass_at_1 }}</div>
+ <div class="metric-sub">Tasks the agent passed at least once</div>
+ <div class="progress-bar">
+ <div class="progress-fill" style="width:{{ pass_at_1 }}; background:{{ pass_color_hex }};"></div>
+ </div>
+ </div>
+ <div class="card">
+ <div class="card-title">Consistency @ {{ num_trials }}</div>
+ <div class="metric-value {{ cons_color }}">{{ consistency_at_n }}</div>
+ <div class="metric-sub">Same outcome across repeated trials</div>
+ <div class="progress-bar">
+ <div class="progress-fill" style="width:{{ consistency_at_n }}; background:{{ cons_color_hex }};"></div>
+ </div>
+ <span class="metric-delta" style="background:var(--red-light); color:var(--red);">
+ ↓ Gap from Pass@1
+ </span>
+ </div>
+ <div class="card">
+ <div class="card-title">Avg Failure Turn</div>
+ <div class="metric-value yellow">{{ avg_failure_turn }}</div>
+ <div class="metric-sub">Conversation turn where agents typically break</div>
+ </div>
+ </div>
+
+ <!-- KEY FINDINGS -->
+ <div class="section-title">Key Findings</div>
+ <div class="card" style="margin-bottom:2rem;">
+ {{ insights_html }}
+ </div>
+
+ <!-- FAILURE BREAKDOWN + WORST TASKS -->
+ <div class="section-title">Failure Analysis</div>
+ <div class="grid-2">
+ <div class="card">
+ <div class="card-title">Failure Mode Breakdown</div>
+ {{ failure_bars_html }}
+ </div>
+ <div class="card">
+ <div class="card-title">Least Consistent Tasks</div>
+ <table>
+ <tr>
+ <th>Task ID</th>
+ <th>Pass Rate</th>
+ <th>Consistency</th>
+ <th>Top Failure</th>
+ </tr>
+ {{ worst_tasks_html }}
+ </table>
+ </div>
+ </div>
+
+ <!-- ALL TASKS -->
+ <div class="section-title">All Task Results</div>
+ <div class="card">
+ <table>
+ <tr>
+ <th>Task ID</th>
+ <th>Pass Rate</th>
+ <th>Consistency</th>
+ <th>Avg Fail Turn</th>
+ <th>Top Failure Mode</th>
+ <th>Status</th>
+ </tr>
+ {{ all_tasks_html }}
+ </table>
+ </div>
+
+</div><!-- /main -->
+
+<!-- FOOTER -->
+<footer>
+ <div>
+ <span class="footer-brand">τ-bench-extend</span>
+ &nbsp;·&nbsp; Built for Sierra by <strong>Jafar</strong>
+ &nbsp;·&nbsp; Domain: {{ domain }}
+ </div>
+ <div>
+ <a href="https://github.com/sierra-research/tau-bench" target="_blank">Sierra τ-bench</a>
+ &nbsp;·&nbsp;
+ <a href="https://sierra.ai/blog/meet-the-ai-agent-engineer" target="_blank">Sierra's Problem</a>
+ &nbsp;·&nbsp;
+ <a href="https://arxiv.org/abs/2406.12045" target="_blank">Paper</a>
+ </div>
+</footer>
+
+</body>
+</html>
+"""
+
+def _color_for_rate(rate: float) -> tuple[str, str]:
+    """Returns (css_class, hex_color) for a 0-1 rate."""
+    if rate >= 0.7:
+        return "green", "#f5a623"
+    elif rate >= 0.4:
+        return "yellow", "#b7791f"
+    return "red", "#c0392b"
+
+
+def generate_report(report: DomainReport, output_path: str) -> None:
+    """Generate an HTML report from a DomainReport."""
+
+    pass_pct = report.pass_at_1
+    cons_pct = report.consistency_at_n
+
+    pass_color, pass_hex = _color_for_rate(pass_pct)
+    cons_color, cons_hex = _color_for_rate(cons_pct)
+
+    # Insights
+    insights = []
+    gap = pass_pct - cons_pct
+    if gap > 0.2:
+        insights.append(
+            f"<strong>Large consistency gap ({gap:.0%})</strong>: The model passes {pass_pct:.0%} "
+            f"of tasks at least once, but is only consistent {cons_pct:.0%} of the time. "
+            "This means customers get different outcomes depending on when they contact support."
+        )
+
+    if report.avg_failure_turn < 4:
+        insights.append(
+            f"<strong>Early failures (avg turn {report.avg_failure_turn:.1f})</strong>: "
+            "The agent breaks down early in conversations, suggesting issues with initial "
+            "intent understanding rather than context management."
+        )
+    elif report.avg_failure_turn > 6:
+        insights.append(
+            f"<strong>Context drop-off (avg turn {report.avg_failure_turn:.1f})</strong>: "
+            "Failures occur late in conversations. Classic context window degradation. "
+            "The agent loses track of earlier commitments."
+        )
+
+    top_failure = max(report.failure_breakdown, key=report.failure_breakdown.get) if report.failure_breakdown else None
+    if top_failure:
+        top_count = report.failure_breakdown[top_failure]
+        total_failures = sum(report.failure_breakdown.values())
+        insights.append(
+            f"<strong>Dominant failure mode: {top_failure}</strong> "
+            f"({top_count}/{total_failures} failures, {top_count/total_failures:.0%}). "
+            "Targeting this single failure mode would have the biggest impact on reliability."
+        )
+
+    if not insights:
+        insights.append("No critical issues found. Model performs consistently across tasks.")
+
+    icons = ["📊", "⚠️", "🔍"]
+    insights_html = "".join(
+        f'<div class="insight-box"><span class="insight-icon">{icons[min(idx, len(icons)-1)]}</span><p>{insight}</p></div>'
+        for idx, insight in enumerate(insights)
+    )
+
+    # Failure bars
+    total_failures = sum(report.failure_breakdown.values()) or 1
+    failure_colors = {
+        "policy_violation": "#b7791f",
+        "hallucination": "#c0392b",
+        "context_loss": "#e67e22",
+        "wrong_tool_call": "#1d4ed8",
+        "incomplete_action": "#6b6560",
+        "brand_safety": "#7c3c62",
+    }
+    failure_bars_html = ""
+    for mode, count in sorted(report.failure_breakdown.items(), key=lambda x: -x[1]):
+        pct = count / total_failures * 100
+        color = failure_colors.get(mode, "#6b6560")
+        failure_bars_html += f"""
+        <div class="failure-row">
+          <span class="failure-name">{mode.replace('_', ' ').title()}</span>
+          <div class="failure-bar-wrap">
+            <div class="progress-bar">
+              <div class="progress-fill" style="width:{pct:.0f}%; background:{color};"></div>
+            </div>
+          </div>
+          <span class="failure-count">{count}</span>
+        </div>"""
+
+    if not failure_bars_html:
+        failure_bars_html = "<p style='color:var(--muted); font-size:0.875rem;'>No failures recorded.</p>"
+
+    # Worst tasks table
+    worst = sorted(report.results, key=lambda r: r.consistency_score)[:5]
+    worst_tasks_html = ""
+    for r in worst:
+        top_fm = (
+            max(set(r.failure_modes), key=r.failure_modes.count).value
+            if r.failure_modes else "none"
+        )
+        color_class = "red" if r.consistency_score < 0.5 else "yellow"
+        worst_tasks_html += f"""
+        <tr>
+          <td>{r.task_id}</td>
+          <td>{r.pass_rate:.0%}</td>
+          <td class="{color_class}">{r.consistency_score:.0%}</td>
+          <td>{top_fm.replace('_', ' ')}</td>
+        </tr>"""
+
+    # All tasks table
+    all_tasks_html = ""
+    for r in sorted(report.results, key=lambda x: x.consistency_score):
+        top_fm = (
+            max(set(r.failure_modes), key=r.failure_modes.count).value
+            if r.failure_modes else "correct"
+        )
+        if r.pass_rate >= 0.6:
+            status_class = "pill pill-pass"
+            status_label = "Good"
+        elif r.pass_rate >= 0.3:
+            status_class = "pill pill-flaky"
+            status_label = "Flaky"
+        else:
+            status_class = "pill pill-fail"
+            status_label = "Poor"
+
+        cons_color_class = "green" if r.consistency_score >= 0.75 else ("yellow" if r.consistency_score >= 0.5 else "red")
+        avg_ft = f"{r.avg_failure_turn:.1f}" if r.avg_failure_turn is not None else "n/a"
+        all_tasks_html += f"""
+        <tr>
+          <td>{r.task_id}</td>
+          <td>{r.pass_rate:.0%}</td>
+          <td class="{cons_color_class}">{r.consistency_score:.0%}</td>
+          <td>{avg_ft}</td>
+          <td style="font-size:0.8rem;">{top_fm.replace('_', ' ')}</td>
+          <td><span class="{status_class}">{status_label}</span></td>
+        </tr>"""
+
+    html = (HTML_TEMPLATE
+        .replace("{{ domain }}", report.domain.title())
+        .replace("{{ model }}", report.model)
+        .replace("{{ pass_at_1 }}", f"{pass_pct:.1%}")
+        .replace("{{ pass_color }}", pass_color)
+        .replace("{{ pass_color_hex }}", pass_hex)
+        .replace("{{ consistency_at_n }}", f"{cons_pct:.1%}")
+        .replace("{{ cons_color }}", cons_color)
+        .replace("{{ cons_color_hex }}", cons_hex)
+        .replace("{{ num_trials }}", str(report.num_trials))
+        .replace("{{ avg_failure_turn }}", f"{report.avg_failure_turn:.1f}")
+        .replace("{{ insights_html }}", insights_html)
+        .replace("{{ failure_bars_html }}", failure_bars_html)
+        .replace("{{ worst_tasks_html }}", worst_tasks_html)
+        .replace("{{ all_tasks_html }}", all_tasks_html)
+    )
+
+    from pathlib import Path
+    Path(output_path).write_text(html, encoding="utf-8")
+    print(f"\nReport saved to: {output_path}")

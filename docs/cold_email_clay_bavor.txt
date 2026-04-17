@@ -1,0 +1,36 @@
+Subject: Extended tau-bench to healthcare and insurance, ran it, here is what broke
+
+Hi Clay,
+
+I read your post on agent supervision and the tau-bench paper. You said healthcare
+and financial services are the hardest environments for agent supervisors, but
+tau-bench only covers retail and airline. There is no benchmark to measure whether
+your supervisors are holding up in those domains.
+
+So I built one: github.com/jafar-97/tau-bench-extend
+
+I extended tau-bench with three new domains (healthcare, insurance, ecommerce), each
+with domain-specific policies, tool sets, and adversarial edge cases like hallucination
+bait and prompt injection. I also built a consistency scorer that runs the same task N
+times to measure reliability across repeated trials.
+
+Then I ran it. 84 real eval runs total:
+
+  Healthcare:  Pass@1 = 20%,  Consistency@3 = 96.7%,  Avg failure turn = 2.8
+  Insurance:   Pass@1 = 25%,  Consistency@3 = 100%,   Avg failure turn = 2.7
+  Ecommerce:   Pass@1 = 30%,  Consistency@3 = 100%,   Avg failure turn = 2.7
+
+The finding: high consistency but low pass rate means the agent is consistently
+failing, not randomly. It reliably stops before completing the task (incomplete_action
+is 85% of failures across all domains). Failures cluster at turn 2.7, early in
+conversations, which points to tool selection as the breakdown point rather than
+context loss. That is exactly the kind of signal a supervisor layer needs to catch.
+
+I am an AI/ML engineer (MS in AI, University of Cincinnati, 2 years production
+experience in LLM systems). I would love to contribute to what Sierra is building.
+
+GitHub: github.com/jafar-97/tau-bench-extend
+Loom: [ADD LINK BEFORE SENDING]
+
+Best,
+Jafar
