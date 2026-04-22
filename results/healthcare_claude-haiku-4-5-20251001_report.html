@@ -424,18 +424,18 @@
  <div class="grid-3">
  <div class="card">
  <div class="card-title">Pass @ 1</div>
- <div class="metric-value red">20.0%</div>
+ <div class="metric-value yellow">40.0%</div>
  <div class="metric-sub">Tasks the agent passed at least once</div>
  <div class="progress-bar">
- <div class="progress-fill" style="width:20.0%; background:#c0392b;"></div>
+ <div class="progress-fill" style="width:40.0%; background:#b7791f;"></div>
  </div>
  </div>
  <div class="card">
  <div class="card-title">Consistency @ 3</div>
- <div class="metric-value green">96.7%</div>
+ <div class="metric-value green">93.3%</div>
  <div class="metric-sub">Same outcome across repeated trials</div>
  <div class="progress-bar">
- <div class="progress-fill" style="width:96.7%; background:#f5a623;"></div>
+ <div class="progress-fill" style="width:93.3%; background:#f5a623;"></div>
  </div>
  <span class="metric-delta" style="background:var(--red-light); color:var(--red);">
  ↓ Gap from Pass@1
@@ -443,7 +443,7 @@
  </div>
  <div class="card">
  <div class="card-title">Avg Failure Turn</div>
- <div class="metric-value yellow">2.8</div>
+ <div class="metric-value yellow">2.5</div>
  <div class="metric-sub">Conversation turn where agents typically break</div>
  </div>
  </div>
@@ -451,7 +451,7 @@
  <!-- KEY FINDINGS -->
  <div class="section-title">Key Findings</div>
  <div class="card" style="margin-bottom:2rem;">
- <div class="insight-box"><span class="insight-icon">📊</span><p><strong>Early failures (avg turn 2.8)</strong>: The agent breaks down early in conversations, suggesting issues with initial intent understanding rather than context management.</p></div><div class="insight-box"><span class="insight-icon">⚠️</span><p><strong>Dominant failure mode: incomplete_action</strong> (23/26 failures, 88%). Targeting this single failure mode would have the biggest impact on reliability.</p></div>
+ <div class="insight-box"><span class="insight-icon">📊</span><p><strong>Early failures (avg turn 2.5)</strong>: The agent breaks down early in conversations, suggesting issues with initial intent understanding rather than context management.</p></div><div class="insight-box"><span class="insight-icon">⚠️</span><p><strong>Dominant failure mode: incomplete_action</strong> (8/11 failures, 73%). Targeting this single failure mode would have the biggest impact on reliability.</p></div>
  </div>
 
  <!-- FAILURE BREAKDOWN + WORST TASKS -->
@@ -464,16 +464,16 @@
           <span class="failure-name">Incomplete Action</span>
           <div class="failure-bar-wrap">
             <div class="progress-bar">
-              <div class="progress-fill" style="width:88%; background:#6b6560;"></div>
+              <div class="progress-fill" style="width:73%; background:#6b6560;"></div>
             </div>
           </div>
-          <span class="failure-count">23</span>
+          <span class="failure-count">8</span>
         </div>
         <div class="failure-row">
           <span class="failure-name">Policy Violation</span>
           <div class="failure-bar-wrap">
             <div class="progress-bar">
-              <div class="progress-fill" style="width:12%; background:#b7791f;"></div>
+              <div class="progress-fill" style="width:27%; background:#b7791f;"></div>
             </div>
           </div>
           <span class="failure-count">3</span>
@@ -490,34 +490,34 @@
  </tr>
  
         <tr>
-          <td>12</td>
+          <td>2</td>
           <td>33%</td>
-          <td class="yellow">86%</td>
+          <td class="yellow">67%</td>
           <td>incomplete action</td>
         </tr>
         <tr>
-          <td>6</td>
+          <td>1</td>
           <td>0%</td>
-          <td class="yellow">91%</td>
+          <td class="yellow">100%</td>
           <td>incomplete action</td>
         </tr>
         <tr>
-          <td>9</td>
-          <td>33%</td>
-          <td class="yellow">91%</td>
+          <td>3</td>
+          <td>0%</td>
+          <td class="yellow">100%</td>
           <td>incomplete action</td>
         </tr>
         <tr>
           <td>4</td>
           <td>0%</td>
-          <td class="yellow">91%</td>
-          <td>incomplete action</td>
+          <td class="yellow">100%</td>
+          <td>policy violation</td>
         </tr>
         <tr>
           <td>5</td>
-          <td>0%</td>
-          <td class="yellow">94%</td>
-          <td>incomplete action</td>
+          <td>100%</td>
+          <td class="yellow">100%</td>
+          <td>none</td>
         </tr>
  </table>
  </div>
@@ -537,90 +537,18 @@
  </tr>
  
         <tr>
-          <td>12</td>
-          <td>33%</td>
-          <td class="green">86%</td>
-          <td>2.3</td>
-          <td style="font-size:0.8rem;">incomplete action</td>
-          <td><span class="pill pill-flaky">Flaky</span></td>
-        </tr>
-        <tr>
-          <td>6</td>
-          <td>0%</td>
-          <td class="green">91%</td>
-          <td>3.1</td>
-          <td style="font-size:0.8rem;">incomplete action</td>
-          <td><span class="pill pill-fail">Poor</span></td>
-        </tr>
-        <tr>
-          <td>9</td>
-          <td>33%</td>
-          <td class="green">91%</td>
-          <td>2.6</td>
-          <td style="font-size:0.8rem;">incomplete action</td>
-          <td><span class="pill pill-flaky">Flaky</span></td>
-        </tr>
-        <tr>
-          <td>4</td>
-          <td>0%</td>
-          <td class="green">91%</td>
-          <td>2.8</td>
-          <td style="font-size:0.8rem;">incomplete action</td>
-          <td><span class="pill pill-fail">Poor</span></td>
-        </tr>
-        <tr>
-          <td>5</td>
-          <td>0%</td>
-          <td class="green">94%</td>
-          <td>3.0</td>
-          <td style="font-size:0.8rem;">incomplete action</td>
-          <td><span class="pill pill-fail">Poor</span></td>
-        </tr>
-        <tr>
-          <td>15</td>
-          <td>67%</td>
-          <td class="green">95%</td>
-          <td>2.7</td>
-          <td style="font-size:0.8rem;">incomplete action</td>
-          <td><span class="pill pill-pass">Good</span></td>
-        </tr>
-        <tr>
-          <td>11</td>
-          <td>33%</td>
-          <td class="green">96%</td>
-          <td>2.2</td>
-          <td style="font-size:0.8rem;">incomplete action</td>
-          <td><span class="pill pill-flaky">Flaky</span></td>
-        </tr>
-        <tr>
           <td>2</td>
           <td>33%</td>
-          <td class="green">97%</td>
-          <td>2.6</td>
+          <td class="yellow">67%</td>
+          <td>3.0</td>
           <td style="font-size:0.8rem;">incomplete action</td>
           <td><span class="pill pill-flaky">Flaky</span></td>
-        </tr>
-        <tr>
-          <td>14</td>
-          <td>0%</td>
-          <td class="green">98%</td>
-          <td>2.4</td>
-          <td style="font-size:0.8rem;">incomplete action</td>
-          <td><span class="pill pill-fail">Poor</span></td>
         </tr>
         <tr>
           <td>1</td>
           <td>0%</td>
-          <td class="green">99%</td>
-          <td>2.9</td>
-          <td style="font-size:0.8rem;">incomplete action</td>
-          <td><span class="pill pill-fail">Poor</span></td>
-        </tr>
-        <tr>
-          <td>13</td>
-          <td>0%</td>
-          <td class="green">99%</td>
-          <td>2.9</td>
+          <td class="green">100%</td>
+          <td>3.0</td>
           <td style="font-size:0.8rem;">incomplete action</td>
           <td><span class="pill pill-fail">Poor</span></td>
         </tr>
@@ -628,33 +556,25 @@
           <td>3</td>
           <td>0%</td>
           <td class="green">100%</td>
-          <td>2.1</td>
+          <td>3.0</td>
           <td style="font-size:0.8rem;">incomplete action</td>
           <td><span class="pill pill-fail">Poor</span></td>
         </tr>
         <tr>
-          <td>7</td>
-          <td>33%</td>
-          <td class="green">100%</td>
-          <td>2.9</td>
-          <td style="font-size:0.8rem;">incomplete action</td>
-          <td><span class="pill pill-flaky">Flaky</span></td>
-        </tr>
-        <tr>
-          <td>8</td>
+          <td>4</td>
           <td>0%</td>
           <td class="green">100%</td>
-          <td>2.7</td>
-          <td style="font-size:0.8rem;">incomplete action</td>
+          <td>1.0</td>
+          <td style="font-size:0.8rem;">policy violation</td>
           <td><span class="pill pill-fail">Poor</span></td>
         </tr>
         <tr>
-          <td>10</td>
-          <td>33%</td>
+          <td>5</td>
+          <td>100%</td>
           <td class="green">100%</td>
-          <td>2.8</td>
-          <td style="font-size:0.8rem;">incomplete action</td>
-          <td><span class="pill pill-flaky">Flaky</span></td>
+          <td>n/a</td>
+          <td style="font-size:0.8rem;">correct</td>
+          <td><span class="pill pill-pass">Good</span></td>
         </tr>
  </table>
  </div>
