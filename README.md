@@ -160,4 +160,4 @@ Issues and PRs welcome. Especially interested in:
 - Additional adversarial patterns
 - Integration with τ²-bench / τ³-bench
 
-Contact: jafar97dev@gmail.com
+
